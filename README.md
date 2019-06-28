@@ -1,2 +1,1 @@
-# pickmoji
-Emoji Picker Browser Extension
+# Emoji Picker Browser Extension

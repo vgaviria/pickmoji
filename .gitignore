@@ -1,0 +1,12 @@
+# JS dependencies
+node_modules/
+npm-debug.log
+
+# Vim
+*.sw*
+
+# project
+build
+
+# misc
+.DS_Store

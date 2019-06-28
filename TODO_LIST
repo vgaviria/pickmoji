@@ -1,0 +1,63 @@
+06/28/19
+TODO LIST: 
+
+==================
+Short-Term
+==================
+  - [ ] Capture the arrow key events, tab, and enter in order to navigate the
+    emoji choices.
+  - [ ] Track current emoji choice (default to first suggestion match), and upon
+    pressing enter, replace the ":<fuzzy_name>" string in the textbox / textarea
+    with the emoji!
+  - [ ] Start styling the emoji picker
+
+==================
+Mid-Term
+==================
+  - [ ] Start looking into how to make this into a chrome extension (hopefully
+    this will even be allowed to be an extension). Setup chrome extension
+    locally.
+
+  - [ ] Reorganize files
+  
+  - [ ] Emoji character range needs to be adjusted, the range is not covering
+    all of the emojis outlined in https://unicode.org/emoji/charts-12.0/full-emoji-list.html.
+    For example none of the flags on the bottom of that site are appearing in
+    the Noto font.
+
+  - [ ] Change the fuzzysearch function to prefer exact substring matches first.
+    We probably have to implement, or use a package, that efficently calculates
+    the "Levenshtein distance", or that tracks the amount of gaps between the
+    letters, which we can use to order the results better.
+
+  - [ ] Eventually evaluate if Typescript would be better to use, since there
+    might be less ceremony around debugging babel related issues. I don't think
+    I need to get plugins for all of the es6 features I need when using TS.
+
+  - [ ] Write some selenium tests
+
+  - [ ] Write some unit tests
+
+==================
+Long-Term
+==================
+  - [ ] Optimize to allocate less memory. For example:
+    * keep references to the suggestion elements, and stop inserting new divs each time.
+    * stop recreating empty arrays upon every button press.
+
+  - [ ] Optimize search to prefer frequently used emojis first.
+  - [ ] Ensure this works on non-textbox elements that act as textboxes (by
+    using the role="textbox" attribute, or some other method). Look at Gmail as
+    an example. I imagine searching for the current cursor will be hard here.
+
+  - [ ] Allow users to set basic opt-in / opt-out settings for specific urls.
+    Also allow global opt-in / opt-out settings. 
+  - [ ] Allow users to choose the preferred color tone for people emojis
+    (Extension Setting).
+  - [ ] Allow users to choose the preferred emoji scheme for the picker display
+    (Extension Setting).
+  - [ ] Allow users alias emojis (Extension Setting).
+  - [ ] Allow users to load emoji picker on demand rather than automatically 
+    appearing (ctrl+space command) (Extension Setting).
+
+  - [ ] Look into other browser extension platforms (firefox?)
