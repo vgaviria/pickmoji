@@ -27,6 +27,16 @@ class EventEmitter {
 
 const CHAR_THRESHOLD = 1;
 const SUGGESTION_MAX = 20;
+const navigationKeys = new Set([
+  'Backspace',
+  'Enter',
+  'Tab',
+  'ArrowDown',
+  'ArrowUp',
+  'ArrowLeft',
+  'ArrowRight',
+]);
+
 
 class EmojiPickerStore extends EventEmitter {
   constructor() {
@@ -34,6 +44,7 @@ class EmojiPickerStore extends EventEmitter {
     this.listening = false;
     this.capturedChars = [];
     this.suggestedEmojis = [];
+    this.currentChoiceIndex = 0;
   }
 
   _populateSuggestions() {
@@ -54,21 +65,26 @@ class EmojiPickerStore extends EventEmitter {
     this.suggestedEmojis = newSuggestions;
   }
 
-  enableListening() {
-    this.listening = true;
-    this.capturedChars = [];
-    this.suggestedEmojis = [];
-    this.emit(PickerEvents.pickerStateUpdated, this);
-  }
-
-  disableListening() {
+  resetState() {
     this.listening = false;
     this.capturedChars = [];
     this.suggestedEmojis = [];
+    this.currentChoiceIndex = 0;
+  }
+
+  _enableListening() {
+    this.resetState();
+    this.listening = true;
     this.emit(PickerEvents.pickerStateUpdated, this);
   }
 
-  captureCharacter(char) {
+  _disableListening() {
+    this.resetState();
+    this.listening = false;
+    this.emit(PickerEvents.pickerStateUpdated, this);
+  }
+
+  _captureCharacter(char) {
     if (this.listening) {
       this.capturedChars.push(char);
 
@@ -80,10 +96,10 @@ class EmojiPickerStore extends EventEmitter {
     }
   }
 
-  removeLastCharacter() {
-    if (this.isListening) {
+  _removeLastCharacter() {
+    if (this.listening) {
       if (this.capturedChars.length <= 0) {
-        this.disableListening();
+        this._disableListening();
       }
 
       this.capturedChars.pop();
@@ -96,42 +112,55 @@ class EmojiPickerStore extends EventEmitter {
     }
   }
 
-  isListening() {
-    return this.listening;
+  _selectCurrentEmoji() {
+    const emoji = this.suggestedEmojis[this.currentChoiceIndex];
+    if (this.listening && emoji) {
+      this._disableListening();
+      this.emit(PickerEvents.emojiPicked, emoji);
+    }
+  }
+
+  _handleNavInput(key) {
+    if (key === 'Backspace') {
+      this._removeLastCharacter();
+    } else if (key === 'Enter') {
+      this._selectCurrentEmoji();
+    }
+  }
+
+  _handleCharacterInput(char) {
+    if (char === ':') {
+      this._enableListening();
+    } else if (this.listening && /[a-zA-Z_]/.test(char)) {
+      this._captureCharacter(char);
+    } else if (this.listening) {
+      this._disableListening();
+    }
+  }
+
+  handleEvent(keyboardEvent) {
+    const key = keyboardEvent.key;
+
+    if (keyboardEvent.metaKey || (key.length !== 1 && !navigationKeys.has(key))) {
+      return;
+    } else if (navigationKeys.has(key)) {
+      this._handleNavInput(key);
+    } else {
+      this._handleCharacterInput(key);
+    }
   }
 }
 
 export const emojiPickerStore = new EmojiPickerStore();
 
-// TODO: We're testing directly on the document for the time being. I imagine
-// that we need to attach a listener to the active element in the future.
-document.addEventListener("keydown", (keyboardEvent) => {
-  const key = keyboardEvent.key;
-
-  if (keyboardEvent.metaKey || (key.length !== 1 && key != 'Backspace')) {
-    return;
-  }
-
-  if (keyboardEvent.key === 'Backspace') {
-    emojiPickerStore.removeLastCharacter();
-  } else if (key === ':') {
-    emojiPickerStore.enableListening();
-  } else if (emojiPickerStore.isListening() && /[a-zA-Z_]/.test(key)) {
-    emojiPickerStore.captureCharacter(key);
-  } else if (emojiPickerStore.isListening) {
-    emojiPickerStore.disableListening();
-  }
-
-});
-
 class EmojiPicker {
   constructor() {
-    this.pickerElement = this.initPickerElement();
+    this.pickerElement = this._initPickerElement();
 
-    emojiPickerStore.on(PickerEvents.pickerStateUpdated, this.update.bind(this));
+    emojiPickerStore.on(PickerEvents.pickerStateUpdated, this.onStateUpdate.bind(this));
   }
 
-  initPickerElement() {
+  _initPickerElement() {
     const pickerElement = document.createElement('div');
     pickerElement.className = 'pickmoji-picker-active';
 
@@ -170,7 +199,7 @@ class EmojiPicker {
     this.pickerElement.className = 'pickmoji-picker-active';
   }
 
-  update(pickerState) {
+  onStateUpdate(pickerState) {
     if (pickerState.suggestedEmojis.length > 0) {
       this._displaySuggestions(pickerState);
     } else {
@@ -180,8 +209,57 @@ class EmojiPicker {
 
 }
 
+class EmojiTextInput {
+  constructor(inputElement) {
+    this.inputElement = inputElement;
+
+    emojiPickerStore.on(PickerEvents.emojiPicked, this.onEmojiPicked.bind(this));
+  }
+
+  _replaceTextWithEmoji(emojiChar) {
+    // TODO: This is assuming that the input element is an <input type='textbox'>
+    const oldText = this.inputElement.value;
+    const searchTextEndIndex = this.inputElement.selectionEnd;
+    const searchTextStartIndex = this.inputElement.value.lastIndexOf(':', this.inputElement.selectionEnd);
+    this.inputElement.value = oldText.substr(0, searchTextStartIndex) + emojiChar + oldText.substr(searchTextEndIndex, oldText.length);
+    this.inputElement.selectionEnd = searchTextStartIndex + 1;
+  }
+
+  onEmojiPicked(emoji) {
+    console.debug(emoji);
+    this._replaceTextWithEmoji(emoji.char);
+  }
+}
+
+const textInputRegistry = {};
+
+function isTextInputElement (htmlNode) {
+  if (htmlNode.tagName.toLowerCase() === 'input' && htmlNode.attributes.getNamedItem('type').value === 'textbox') {
+    return true;
+  }
+  return false;
+}
+
+document.addEventListener("focusin", () => {
+  if (isTextInputElement(document.activeElement)) {
+    const inputElement = document.activeElement;
+
+    if (!inputElement.id || !textInputRegistry[inputElement.id]) {
+      inputElement.id = inputElement.id || `pickmoji-text-input-${Math.round(Math.random() * 1000000000)}`;
+      inputElement.addEventListener("keydown", (keyboardEvent) => {
+        emojiPickerStore.handleEvent(keyboardEvent);
+      });
+      textInputRegistry[inputElement.id] = new EmojiTextInput(inputElement);
+      console.debug(`Registering element with id ${inputElement.id}`);
+    }
+
+    emojiPickerStore.resetState();
+  }
+});
+
 export const PickerEvents = {
-  pickerStateUpdated: 'pickerStateUpdated'
+  pickerStateUpdated: 'pickerStateUpdated',
+  emojiPicked: 'emojiPicked',
 };
 export const emojiPicker = new EmojiPicker();
 

@@ -4,11 +4,8 @@ TODO LIST:
 ==================
 Short-Term
 ==================
-  - [ ] Capture the arrow key events, tab, and enter in order to navigate the
+  - [ ] Capture the arrow key events and tab to navigate the emoji suggestions. 
     emoji choices.
-  - [ ] Track current emoji choice (default to first suggestion match), and upon
-    pressing enter, replace the ":<fuzzy_name>" string in the textbox / textarea
-    with the emoji!
   - [ ] Start styling the emoji picker
 
 ==================
