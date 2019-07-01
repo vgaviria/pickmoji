@@ -38,11 +38,6 @@
   padding: 4px;
 }
 
-
-.pickmoji-suggestion-highlight {
-  background-color: #88D498; 
-};
-
 .pickmoji-picker-hidden {
   visibility: hidden;
 }
@@ -55,8 +50,23 @@
   padding: 5px;
   border-radius: 10px;
   width: auto;
-  // margin: 2px;
+  cursor: pointer;
+  margin-top: 2px;
+  margin-bottom: 2px;
 }
+
+.pickmoji-suggestion-active:hover {
+  background-color: #E1F8E6; 
+}
+
+.pickmoji-suggestion-highlight {
+  @extend .pickmoji-suggestion-active;
+  background-color: #88D498; 
+};
+
+.pickmoji-suggestion-highlight:hover {
+  background-color: #88D498;
+};
 
 .pickmoji-suggestion-hidden {
   visibility: hidden;

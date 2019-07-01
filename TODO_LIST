@@ -20,25 +20,29 @@ Mid-Term
     backspacing is to use the mose to change the selection location, and make an
     edit in between the text. Currently this does not work at all
 
-  - [ ] Reorganize files
-  
+  - [ ] Ensure this works on non-textbox elements that act as textboxes (by
+    using the role="textbox" attribute, or some other method). Look at Gmail as
+    an example. Apparently we could use the `window.getSelection()` function to
+    help us out here with divs who are contenteditable (which I am guessing is
+    usually paired with role="textbox")
+
   - [ ] Emoji character range needs to be adjusted, the range is not covering
     all of the emojis outlined in https://unicode.org/emoji/charts-12.0/full-emoji-list.html.
     For example none of the flags on the bottom of that site are appearing in
     the Noto font.
+
+  - [ ] Find a way to dynamically create font faces for the text input element
+    in question, where the base font is the font style of the text input and the
+    unicode range portion is the emoji font (Noto was picked as the default in
+    this project). 
 
   - [ ] Change the fuzzysearch function to prefer exact substring matches first.
     We probably have to implement, or use a package, that efficently calculates
     the "Levenshtein distance", or that tracks the amount of gaps between the
     letters, which we can use to order the results better.
 
-  - [ ] Eventually evaluate if Typescript would be better to use, since there
-    might be less ceremony around debugging babel related issues. I don't think
-    I need to get plugins for all of the es6 features I need when using TS.
-
-  - [ ] Let's try to expand the picker to be more "grid" like, so we can use
-    both horizontal and veritcal space. 
-
+  - [ ] Reorganize files
+  
   - [ ] Write some selenium tests
 
   - [ ] Write some unit tests
@@ -51,18 +55,27 @@ Long-Term
     * stop recreating empty arrays upon every button press.
 
   - [ ] Optimize search to prefer frequently used emojis first.
-  - [ ] Ensure this works on non-textbox elements that act as textboxes (by
-    using the role="textbox" attribute, or some other method). Look at Gmail as
-    an example. I imagine searching for the current cursor will be hard here.
 
   - [ ] Allow users to set basic opt-in / opt-out settings for specific urls.
     Also allow global opt-in / opt-out settings. 
+
   - [ ] Allow users to choose the preferred color tone for people emojis
     (Extension Setting).
+
   - [ ] Allow users to choose the preferred emoji scheme for the picker display
     (Extension Setting).
+
   - [ ] Allow users alias emojis (Extension Setting).
+
   - [ ] Allow users to load emoji picker on demand rather than automatically 
     appearing (ctrl+space command) (Extension Setting).
 
+  - [ ] Eventually evaluate if Typescript would be better to use, since there
+    might be less ceremony around debugging babel related issues. I don't think
+    I need to get plugins for all of the es6 features I need when using TS.
+
+  - [ ] Let's try to expand the picker to be more "grid" like, so we can use
+    both horizontal and veritcal space. 
+
   - [ ] Look into other browser extension platforms (firefox?)
+

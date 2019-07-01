@@ -163,6 +163,11 @@ class EmojiPickerStore extends EventEmitter {
     }
   }
 
+  handleSuggestionPicked(suggestionId) {
+    this.currentChoiceIndex = suggestionId;
+    this._selectCurrentEmoji();
+  }
+
   handleEvent(keyboardEvent) {
     const key = keyboardEvent.key;
     const isValidKey = (
@@ -205,18 +210,38 @@ class EmojiPicker {
     emojiPickerStore.on(PickerEvents.pickerStateUpdated, this.onStateUpdate.bind(this));
   }
 
+  _initSuggestionElement(indexId) {
+    if (this.pickerElement) {
+      return;
+    }
+
+    const suggestionElement = document.createElement('div');
+
+    suggestionElement.id = `pickmoji-suggestion-${indexId}`;
+    suggestionElement.className = 'pickmoji-suggestion-active';
+    suggestionElement.addEventListener('mousedown', (mouseEvent) => {
+      console.debug(`clicking suggestion ${suggestionElement.id}`);
+      emojiPickerStore.handleSuggestionPicked(indexId);
+      mouseEvent.preventDefault();
+    });
+
+    return suggestionElement;
+  }
+
   _initPickerElement() {
+    if (this.pickerElement) {
+      return;
+    }
+
     const pickerWrapper = document.createElement('div');
     pickerWrapper.innerHTML = initialPickerHTML;
-
     document.getElementsByTagName('body')[0].appendChild(pickerWrapper);
 
     const pickerElement = pickerWrapper.firstElementChild;
     const suggestionsWrapper = pickerElement.lastElementChild;
 
     for (let i = 0; i < SUGGESTION_MAX; i++) {
-      const suggestionElement = suggestionsWrapper.appendChild(document.createElement('div'));
-      suggestionElement.className = 'pickmoji-suggestion-active';
+      suggestionsWrapper.appendChild(this._initSuggestionElement(i));
     }
 
     return pickerElement;
@@ -230,9 +255,10 @@ class EmojiPicker {
       const suggestedEmoji = pickerState.suggestedEmojis[i];
       const suggestionElement = suggestionElements[i];
       if (suggestedEmoji) {
-        suggestionElement.className = 'pickmoji-suggestion-active';
         if (pickerState.currentChoiceIndex === i) {
-          suggestionElement.className += ' pickmoji-suggestion-highlight';
+          suggestionElement.className = 'pickmoji-suggestion-highlight';
+        } else {
+          suggestionElement.className = 'pickmoji-suggestion-active';
         }
         suggestionElement.innerText = `${suggestedEmoji.char} ${suggestedEmoji.name}`;
       } else {
