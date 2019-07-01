@@ -15,21 +15,47 @@
   font-family: pickmoji-emoji;
 }
 
-.pickmoji-picker-active{
-  // visibility: hidden;
-  // position: absolute;
-  // left: 0px;
-  // top: 0px;
+// https://coolors.co/114b5f-1a936f-88d498-c6dabf-f3e9d2
+.pickmoji-picker-active {
+  font-size: 12px;
   font-family: pickmoji-emoji;
-  height: 100%;
+  position: absolute;
+  display: inline-block;
+  height: auto;
+  width: auto;
+  border-radius: 5px;
+  border-style: solid;
+  border-width: 1px;
+  border-color: #D6D6DB;
+  box-shadow: 1px 1px 5px rgba(0, 0, 0, 0.2);
 }
 
-.pickmoji-picker-hidden{
+.pickmoji-picker-banner {
+  background-color: #E5E5EA;
+  border-bottom-style: solid;
+  border-bottom-width: 1px;
+  border-bottom-color: #D6D6DB;
+  padding: 4px;
+}
+
+
+.pickmoji-suggestion-highlight {
+  background-color: #88D498; 
+};
+
+.pickmoji-picker-hidden {
   visibility: hidden;
 }
 
+.pickmoji-picker-suggestions {
+  margin: 2px;
+}
+
 .pickmoji-suggestion-active {
-  height: 12px;
+  padding: 5px;
+  border-radius: 10px;
+  width: auto;
+  // margin: 2px;
 }
 
 .pickmoji-suggestion-hidden {

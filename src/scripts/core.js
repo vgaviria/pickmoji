@@ -26,9 +26,8 @@ class EventEmitter {
 }
 
 const CHAR_THRESHOLD = 1;
-const SUGGESTION_MAX = 20;
+const SUGGESTION_MAX = 5;
 const navigationKeys = new Set([
-  'Backspace',
   'Enter',
   'Tab',
   'ArrowDown',
@@ -65,7 +64,7 @@ class EmojiPickerStore extends EventEmitter {
     this.suggestedEmojis = newSuggestions;
   }
 
-  resetState() {
+  _resetState() {
     this.listening = false;
     this.capturedChars = [];
     this.suggestedEmojis = [];
@@ -73,13 +72,13 @@ class EmojiPickerStore extends EventEmitter {
   }
 
   _enableListening() {
-    this.resetState();
+    this._resetState();
     this.listening = true;
     this.emit(PickerEvents.pickerStateUpdated, this);
   }
 
   _disableListening() {
-    this.resetState();
+    this._resetState();
     this.listening = false;
     this.emit(PickerEvents.pickerStateUpdated, this);
   }
@@ -90,6 +89,7 @@ class EmojiPickerStore extends EventEmitter {
 
       if (this.capturedChars.length > CHAR_THRESHOLD) {
         this._populateSuggestions();
+        this.currentChoiceIndex = 0;
       }
 
       this.emit(PickerEvents.pickerStateUpdated, this);
@@ -106,8 +106,23 @@ class EmojiPickerStore extends EventEmitter {
 
       if (this.capturedChars.length > CHAR_THRESHOLD) {
         this._populateSuggestions();
+        this.currentChoiceIndex = 0;
       }
 
+      this.emit(PickerEvents.pickerStateUpdated, this);
+    }
+  }
+
+  _highlightNextEmoji() {
+    if (this.listening) {
+      this.currentChoiceIndex = (this.currentChoiceIndex + 1) % SUGGESTION_MAX;
+      this.emit(PickerEvents.pickerStateUpdated, this);
+    }
+  }
+
+  _highlightPreviousEmoji() {
+    if (this.listening) {
+      this.currentChoiceIndex = (this.currentChoiceIndex - 1) % SUGGESTION_MAX;
       this.emit(PickerEvents.pickerStateUpdated, this);
     }
   }
@@ -120,19 +135,29 @@ class EmojiPickerStore extends EventEmitter {
     }
   }
 
-  _handleNavInput(key) {
-    if (key === 'Backspace') {
-      this._removeLastCharacter();
-    } else if (key === 'Enter') {
+  _handleNavInput(navInputKey) {
+    if (navInputKey === 'Enter') {
       this._selectCurrentEmoji();
+    } else if (navInputKey === 'Tab') {
+      this._highlightNextEmoji();
+    } else if (navInputKey === 'ArrowDown') {
+      this._highlightNextEmoji();
+    } else if (navInputKey === 'ArrowUp') {
+      this._highlightPreviousEmoji();
+    } else if (navInputKey === 'ArrowLeft') {
+      // TODO: Use this if we want the emoji picker to be more "grid" like
+    } else if (navInputKey === 'ArrowRight') {
+      // TODO: Use this if we want the emoji picker to be more "grid" like
     }
   }
 
-  _handleCharacterInput(char) {
-    if (char === ':') {
+  _handleCharacterInput(charInputKey) {
+    if (charInputKey === 'Backspace') {
+      this._removeLastCharacter();
+    } else if (charInputKey === ':') {
       this._enableListening();
-    } else if (this.listening && /[a-zA-Z_]/.test(char)) {
-      this._captureCharacter(char);
+    } else if (this.listening && /[a-zA-Z_]/.test(charInputKey)) {
+      this._captureCharacter(charInputKey);
     } else if (this.listening) {
       this._disableListening();
     }
@@ -140,18 +165,38 @@ class EmojiPickerStore extends EventEmitter {
 
   handleEvent(keyboardEvent) {
     const key = keyboardEvent.key;
+    const isValidKey = (
+      !keyboardEvent.metaKey &&
+      (key.length === 1 || navigationKeys.has(key)) || key === 'Backspace'
+    );
 
-    if (keyboardEvent.metaKey || (key.length !== 1 && !navigationKeys.has(key))) {
+    if (!isValidKey) {
       return;
     } else if (navigationKeys.has(key)) {
-      this._handleNavInput(key);
+      if (this.listening) {
+        this._handleNavInput(key);
+        keyboardEvent.preventDefault();
+      }
     } else {
       this._handleCharacterInput(key);
     }
   }
+
+  reset() {
+    this._resetState();
+    this.emit(PickerEvents.pickerStateUpdated, this);
+  }
+
 }
 
 export const emojiPickerStore = new EmojiPickerStore();
+
+const initialPickerHTML = `
+  <div id="pickmoji-picker" class="pickmoji-picker-hidden">
+    <div class="pickmoji-picker-banner">Select Emoji</div>
+    <div class="pickmoji-picker-suggestions"></div>
+  </div>
+`;
 
 class EmojiPicker {
   constructor() {
@@ -161,27 +206,34 @@ class EmojiPicker {
   }
 
   _initPickerElement() {
-    const pickerElement = document.createElement('div');
-    pickerElement.className = 'pickmoji-picker-active';
+    const pickerWrapper = document.createElement('div');
+    pickerWrapper.innerHTML = initialPickerHTML;
+
+    document.getElementsByTagName('body')[0].appendChild(pickerWrapper);
+
+    const pickerElement = pickerWrapper.firstElementChild;
+    const suggestionsWrapper = pickerElement.lastElementChild;
 
     for (let i = 0; i < SUGGESTION_MAX; i++) {
-      const suggestionElement = pickerElement.appendChild(document.createElement('div'));
+      const suggestionElement = suggestionsWrapper.appendChild(document.createElement('div'));
       suggestionElement.className = 'pickmoji-suggestion-active';
     }
-
-    document.getElementsByTagName('body')[0].appendChild(pickerElement);
 
     return pickerElement;
   }
 
   _displaySuggestions(pickerState) {
-    const suggestionElements = this.pickerElement.children;
+    const suggestionsWrapper = this.pickerElement.lastElementChild;
+    const suggestionElements = suggestionsWrapper.children;
 
     for (let i = 0; i < SUGGESTION_MAX; i++) {
       const suggestedEmoji = pickerState.suggestedEmojis[i];
       const suggestionElement = suggestionElements[i];
       if (suggestedEmoji) {
         suggestionElement.className = 'pickmoji-suggestion-active';
+        if (pickerState.currentChoiceIndex === i) {
+          suggestionElement.className += ' pickmoji-suggestion-highlight';
+        }
         suggestionElement.innerText = `${suggestedEmoji.char} ${suggestedEmoji.name}`;
       } else {
         suggestionElement.className = 'pickmoji-suggestion-hidden';
@@ -246,14 +298,22 @@ document.addEventListener("focusin", () => {
 
     if (!inputElement.id || !textInputRegistry[inputElement.id]) {
       inputElement.id = inputElement.id || `pickmoji-text-input-${Math.round(Math.random() * 1000000000)}`;
+
       inputElement.addEventListener("keydown", (keyboardEvent) => {
         emojiPickerStore.handleEvent(keyboardEvent);
       });
+
+      inputElement.addEventListener("blur", () => {
+        if (emojiPickerStore.listening) {
+          emojiPickerStore.reset();
+        }
+      });
+
       textInputRegistry[inputElement.id] = new EmojiTextInput(inputElement);
       console.debug(`Registering element with id ${inputElement.id}`);
     }
 
-    emojiPickerStore.resetState();
+    emojiPickerStore.reset();
   }
 });
 

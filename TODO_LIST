@@ -4,9 +4,8 @@ TODO LIST:
 ==================
 Short-Term
 ==================
-  - [ ] Capture the arrow key events and tab to navigate the emoji suggestions. 
-    emoji choices.
-  - [ ] Start styling the emoji picker
+  - [ ] Make the picker appear below the textbox area (absolute positioning with
+    a high z-index)
 
 ==================
 Mid-Term
@@ -14,6 +13,12 @@ Mid-Term
   - [ ] Start looking into how to make this into a chrome extension (hopefully
     this will even be allowed to be an extension). Setup chrome extension
     locally.
+
+  - [ ] Add support for allowing fixes to the emoji search text. This means
+    something like fixing ":smle" to ":smile". Since the arrow keys are being
+    captured during the listening state, the only way we could fix this without
+    backspacing is to use the mose to change the selection location, and make an
+    edit in between the text. Currently this does not work at all
 
   - [ ] Reorganize files
   
@@ -30,6 +35,9 @@ Mid-Term
   - [ ] Eventually evaluate if Typescript would be better to use, since there
     might be less ceremony around debugging babel related issues. I don't think
     I need to get plugins for all of the es6 features I need when using TS.
+
+  - [ ] Let's try to expand the picker to be more "grid" like, so we can use
+    both horizontal and veritcal space. 
 
   - [ ] Write some selenium tests
 
