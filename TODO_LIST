@@ -4,15 +4,16 @@ TODO LIST:
 ==================
 Short-Term
 ==================
-  - [ ] Make the picker appear below the textbox area (absolute positioning with
-    a high z-index)
+
+  - [ ] Start looking into how to make this into a chrome extension (hopefully
+    this will even be allowed to be an extension). Setup chrome extension
+    locally.
 
 ==================
 Mid-Term
 ==================
-  - [ ] Start looking into how to make this into a chrome extension (hopefully
-    this will even be allowed to be an extension). Setup chrome extension
-    locally.
+  - [ ] Allow the picker to position itself _above_ the textbox if the
+    registered text input is too close to the bottom of the page. 
 
   - [ ] Add support for allowing fixes to the emoji search text. This means
     something like fixing ":smle" to ":smile". Since the arrow keys are being
@@ -41,6 +42,9 @@ Mid-Term
     the "Levenshtein distance", or that tracks the amount of gaps between the
     letters, which we can use to order the results better.
 
+  - [ ] Look different ways to get the exact location of the caret in a `textarea`
+    besides using the "textarea-caret" package. This might be the only way.
+
   - [ ] Reorganize files
   
   - [ ] Write some selenium tests
@@ -55,6 +59,9 @@ Long-Term
     * stop recreating empty arrays upon every button press.
 
   - [ ] Optimize search to prefer frequently used emojis first.
+
+  - [ ] Look into aliasing common words to other emojis that make sense in the
+    context. :hello => "waving hand"
 
   - [ ] Allow users to set basic opt-in / opt-out settings for specific urls.
     Also allow global opt-in / opt-out settings. 
