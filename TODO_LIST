@@ -27,16 +27,6 @@ Mid-Term
     help us out here with divs who are contenteditable (which I am guessing is
     usually paired with role="textbox")
 
-  - [ ] Emoji character range needs to be adjusted, the range is not covering
-    all of the emojis outlined in https://unicode.org/emoji/charts-12.0/full-emoji-list.html.
-    For example none of the flags on the bottom of that site are appearing in
-    the Noto font.
-
-  - [ ] Find a way to dynamically create font faces for the text input element
-    in question, where the base font is the font style of the text input and the
-    unicode range portion is the emoji font (Noto was picked as the default in
-    this project). 
-
   - [ ] Change the fuzzysearch function to prefer exact substring matches first.
     We probably have to implement, or use a package, that efficently calculates
     the "Levenshtein distance", or that tracks the amount of gaps between the
@@ -45,11 +35,20 @@ Mid-Term
   - [ ] Look different ways to get the exact location of the caret in a `textarea`
     besides using the "textarea-caret" package. This might be the only way.
 
+  - [ ] Write a script to preprocess the emoji.json library and remap it to only
+    give us the information we need (remove category and codes from the
+    objects). The new object should be keyed on name and the value is the actual
+    emoji. The names should also be lower-cased with underscores.
+
+  - [ ] Test Emoji character ranges to ensure the emoji library and Noto are
+    displaying them all correctly. Write a test script / html page to do this
+
   - [ ] Reorganize files
   
   - [ ] Write some selenium tests
 
   - [ ] Write some unit tests
+
 
 ==================
 Long-Term

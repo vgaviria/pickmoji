@@ -124,7 +124,7 @@ class EmojiPickerStore extends EventEmitter {
 
   _highlightPreviousEmoji() {
     if (this.listening) {
-      this.currentChoiceIndex = (this.currentChoiceIndex - 1) % SUGGESTION_MAX;
+      this.currentChoiceIndex = (this.currentChoiceIndex + SUGGESTION_MAX - 1) % SUGGESTION_MAX;
       this.emit(PickerEvents.pickerStateUpdated, this);
     }
   }
