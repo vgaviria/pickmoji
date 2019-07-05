@@ -15,12 +15,6 @@ Mid-Term
   - [ ] Allow the picker to position itself _above_ the textbox if the
     registered text input is too close to the bottom of the page. 
 
-  - [ ] Add support for allowing fixes to the emoji search text. This means
-    something like fixing ":smle" to ":smile". Since the arrow keys are being
-    captured during the listening state, the only way we could fix this without
-    backspacing is to use the mose to change the selection location, and make an
-    edit in between the text. Currently this does not work at all
-
   - [ ] Ensure this works on non-textbox elements that act as textboxes (by
     using the role="textbox" attribute, or some other method). Look at Gmail as
     an example. Apparently we could use the `window.getSelection()` function to
@@ -44,18 +38,20 @@ Mid-Term
     displaying them all correctly. Write a test script / html page to do this
 
   - [ ] Reorganize files
-  
-  - [ ] Write some selenium tests
+
+  - [ ] Profile the crap out of this and make more tasks to try and reduce 
+  resource consumption as muich as possible 
 
   - [ ] Write some unit tests
+
+  - [ ] Optimize to allocate less memory. For example:
+    * keep references to the suggestion elements, and stop inserting new divs each time.
+    * stop recreating empty arrays upon every button press.
 
 
 ==================
 Long-Term
 ==================
-  - [ ] Optimize to allocate less memory. For example:
-    * keep references to the suggestion elements, and stop inserting new divs each time.
-    * stop recreating empty arrays upon every button press.
 
   - [ ] Optimize search to prefer frequently used emojis first.
 

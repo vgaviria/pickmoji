@@ -36,6 +36,17 @@ const navigationKeys = new Set([
   'ArrowRight',
 ]);
 
+function isNavigationKeyPress(key) {
+  return navigationKeys.has(key);
+}
+
+function isTextEditKeyPress(key) {
+  if (key === 'Backspace' || key.length === 1) {
+    return true;
+  }
+  return false;
+}
+
 
 class EmojiPickerStore extends EventEmitter {
   constructor() {
@@ -43,7 +54,8 @@ class EmojiPickerStore extends EventEmitter {
     this.locationX = 0;
     this.locationY = 0;
     this.listening = false;
-    this.capturedChars = [];
+    this.disableWordCompletion = false;
+    this.searchTerm = '';
     this.suggestedEmojis = [];
     this.currentChoiceIndex = 0;
   }
@@ -52,10 +64,9 @@ class EmojiPickerStore extends EventEmitter {
     // TODO: probably want to keep the array around and not allocate new ones
     // every time we populate the suggestions.
     const newSuggestions = [];
-    const capturedText = this.capturedChars.join('');
 
     for (const name of emojiNames) {
-      if (fuzzysearch(capturedText, name)){
+      if (fuzzysearch(this.searchTerm, name)){
         newSuggestions.push(emojiIndex[name]);
       }
       if (newSuggestions.length >= SUGGESTION_MAX) {
@@ -68,7 +79,8 @@ class EmojiPickerStore extends EventEmitter {
 
   _resetSearchState() {
     this.listening = false;
-    this.capturedChars = [];
+    this.disableWordCompletion = false;
+    this.searchTerm = '';
     this.suggestedEmojis = [];
     this.currentChoiceIndex = 0;
   }
@@ -83,36 +95,6 @@ class EmojiPickerStore extends EventEmitter {
     this._resetSearchState();
     this.listening = false;
     this.emit(PickerEvents.pickerStateUpdated, this);
-  }
-
-  _captureCharacter(char) {
-    if (this.listening) {
-      this.capturedChars.push(char);
-
-      if (this.capturedChars.length > CHAR_THRESHOLD) {
-        this._populateSuggestions();
-        this.currentChoiceIndex = 0;
-      }
-
-      this.emit(PickerEvents.pickerStateUpdated, this);
-    }
-  }
-
-  _removeLastCharacter() {
-    if (this.listening) {
-      if (this.capturedChars.length <= 0) {
-        this._disableListening();
-      }
-
-      this.capturedChars.pop();
-
-      if (this.capturedChars.length > CHAR_THRESHOLD) {
-        this._populateSuggestions();
-        this.currentChoiceIndex = 0;
-      }
-
-      this.emit(PickerEvents.pickerStateUpdated, this);
-    }
   }
 
   _highlightNextEmoji() {
@@ -153,18 +135,6 @@ class EmojiPickerStore extends EventEmitter {
     }
   }
 
-  _handleCharacterInput(charInputKey) {
-    if (charInputKey === 'Backspace') {
-      this._removeLastCharacter();
-    } else if (charInputKey === ':') {
-      this._enableListening();
-    } else if (this.listening && /[a-zA-Z_]/.test(charInputKey)) {
-      this._captureCharacter(charInputKey);
-    } else if (this.listening) {
-      this._disableListening();
-    }
-  }
-
   handleLocationChanged(locationX, locationY) {
     this.locationX = locationX;
     this.locationY = locationY;
@@ -175,22 +145,33 @@ class EmojiPickerStore extends EventEmitter {
     this._selectCurrentEmoji();
   }
 
+  handleInputWordChanged(word) {
+    const colonLocation = word.lastIndexOf(':');
+    if (word && colonLocation >= 0) {
+      if (!this.listening) {
+        this._enableListening();
+      }
+
+      this.searchTerm = word.substr(colonLocation + 1);
+
+      if (this.searchTerm.length > CHAR_THRESHOLD) {
+        this._populateSuggestions();
+      }
+
+      this.emit(PickerEvents.pickerStateUpdated, this);
+    } else if(this.listening) {
+      this._disableListening();
+    }
+  }
+
   handleEvent(keyboardEvent) {
     const key = keyboardEvent.key;
-    const isValidKey = (
-      !keyboardEvent.metaKey &&
-      (key.length === 1 || navigationKeys.has(key)) || key === 'Backspace'
-    );
-
-    if (!isValidKey) {
-      return;
-    } else if (navigationKeys.has(key)) {
-      if (this.listening) {
-        this._handleNavInput(key);
-        keyboardEvent.preventDefault();
-      }
-    } else {
-      this._handleCharacterInput(key);
+    if (key === "Escape") {
+      this._disableListening();
+      this.disableWordCompletion = true;
+    } else if (this.listening && isNavigationKeyPress(key)) {
+      this._handleNavInput(key);
+      keyboardEvent.preventDefault();
     }
   }
 
@@ -296,15 +277,43 @@ class EmojiPicker {
 
 }
 
+// TODO: This is assuming that the input element is an <input type='textbox'>
 class EmojiTextInput {
   constructor(inputElement) {
-    this.inputElement = inputElement;
+    this._inputElement = inputElement;
+    this.currentWordStart = 0;
+    this.currentWordEnd = 0;
+    this.currentWord = '';
 
-    inputElement.addEventListener("keydown", (keyboardEvent) => {
+    this._inputElement.addEventListener("keydown", (keyboardEvent) => {
       emojiPickerStore.handleEvent(keyboardEvent);
     });
 
-    inputElement.addEventListener("blur", () => {
+    this._inputElement.addEventListener("keyup", (keyboardEvent) => {
+      const cursorLocation = this._getCursorLocation();
+      const changeCurrentWord = (
+        !this.currentWord ||
+        isTextEditKeyPress(keyboardEvent.key) ||
+        isNavigationKeyPress(keyboardEvent.key) &&
+        (cursorLocation < this.currentWordStart || cursorLocation > this.currentWordEnd)
+      );
+      if (changeCurrentWord) {
+        this._setCurrentWord();
+      }
+    });
+
+    this._inputElement.addEventListener("click", () => {
+      const cursorLocation = this._getCursorLocation();
+      const changeCurrentWord = (
+        !this.currentWord ||
+        (cursorLocation >= this.currentWordStart || cursorLocation <= this.currentWordEnd)
+      );
+      if (changeCurrentWord) {
+        this._setCurrentWord();
+      }
+    });
+
+    this._inputElement.addEventListener("blur", () => {
       if (emojiPickerStore.listening) {
         emojiPickerStore.clearSearch();
       }
@@ -313,13 +322,51 @@ class EmojiTextInput {
     emojiPickerStore.on(PickerEvents.emojiPicked, this.onEmojiPicked.bind(this));
   }
 
+  _getInputValue() {
+    return this._inputElement.value;
+  }
+
+  _setInputValue(value) {
+    this._inputElement.value = value;
+  }
+
+  _getCursorLocation() {
+    return this._inputElement.selectionEnd;
+  }
+
+  _setCursorLocation(cursorLocation) {
+    this._inputElement.selectionEnd = cursorLocation;
+  }
+
+  _setCurrentWord() {
+    const text = this._getInputValue();
+    const cursorLocation = this._getCursorLocation() - 1;
+    if (text[cursorLocation] !== ' ') {
+      const firstIndex = text.lastIndexOf(' ', cursorLocation);
+      const lastIndex = text.indexOf(' ', cursorLocation)
+
+      this.currentWordStart = (firstIndex < 0 ? 0 : firstIndex + 1);
+      this.currentWordEnd = (lastIndex < 0 ? text.length : lastIndex);
+      this.currentWord = text.substr(
+        this.currentWordStart, this.currentWordEnd - this.currentWordStart
+      );
+
+      console.debug(
+        `Current word "${this.currentWord}" at location ${this.currentWordStart},${this.currentWordEnd}`
+      );
+
+      emojiPickerStore.handleInputWordChanged(this.currentWord);
+    }
+  }
+
   _replaceTextWithEmoji(emojiChar) {
-    // TODO: This is assuming that the input element is an <input type='textbox'>
-    const oldText = this.inputElement.value;
-    const searchTextEndIndex = this.inputElement.selectionEnd;
-    const searchTextStartIndex = this.inputElement.value.lastIndexOf(':', this.inputElement.selectionEnd);
-    this.inputElement.value = oldText.substr(0, searchTextStartIndex) + emojiChar + oldText.substr(searchTextEndIndex, oldText.length);
-    this.inputElement.selectionEnd = searchTextStartIndex + 1;
+    const oldText = this._getInputValue();
+    const searchTextEndIndex = this.currentWordEnd;
+    const searchTextStartIndex = oldText.lastIndexOf(':', this._getCursorLocation());
+    this._setInputValue(
+      oldText.substr(0, searchTextStartIndex) + emojiChar + oldText.substr(searchTextEndIndex, oldText.length)
+    );
+    this._setCursorLocation(searchTextStartIndex + 1);
   }
 
   onEmojiPicked(emoji) {
@@ -360,8 +407,3 @@ export const PickerEvents = {
   emojiPicked: 'emojiPicked',
 };
 export const emojiPicker = new EmojiPicker();
-
-// export default {
-//   emojiPicker: emojiPicker,
-//   PickerEvents: PickerEvents,
-// };

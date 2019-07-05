@@ -10,7 +10,7 @@ class EmojiPickerStoreDebugElement {
     const emojis = state.suggestedEmojis.map((emoji) => emoji.char);
     this.stateDebugElement.innerHTML = `
       <div>IsListening: ${state.listening}</div>
-      <div>Captured Text: ${state.capturedChars.join('')}</div>
+      <div>Search Term: ${state.searchTerm}</div>
       <div class="emoji">Suggestions: ${emojis}</div>
     `;
   }
