@@ -37,8 +37,6 @@ Mid-Term
   - [ ] Test Emoji character ranges to ensure the emoji library and Noto are
     displaying them all correctly. Write a test script / html page to do this
 
-  - [ ] Reorganize files
-
   - [ ] Profile the crap out of this and make more tasks to try and reduce 
   resource consumption as muich as possible 
 

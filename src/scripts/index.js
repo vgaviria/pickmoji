@@ -1,5 +1,7 @@
-import '../styles/index.scss';
-import { emojiPickerStore, PickerEvents } from './core';
+/* This is the index file for the test html page*/
+import './core/index';
+import { emojiPickerStore } from './core/emojiPickerStore';
+import { PickerEvents } from './core/constants';
 
 class EmojiPickerStoreDebugElement {
   constructor() {
