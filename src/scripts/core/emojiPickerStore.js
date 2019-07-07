@@ -1,8 +1,8 @@
-import fuzzysearch from 'fuzzysearch';
+import { WeightedFuzzySearcher } from './fuzzySearch';
 
 import { CHAR_THRESHOLD, SUGGESTION_MAX, PickerEvents } from './constants';
 import { isNavigationKeyPress } from './helpers';
-import { emojiNames, emojiIndex } from './emojis';
+import { emojis } from './emojis';
 import {EventEmitter} from './eventEmitter';
 
 class EmojiPickerStore extends EventEmitter {
@@ -15,21 +15,24 @@ class EmojiPickerStore extends EventEmitter {
     this.searchTerm = '';
     this.suggestedEmojis = [];
     this.currentChoiceIndex = 0;
+
+    this.fuzzySearcher = new WeightedFuzzySearcher(emojis, {itemId: 'name'});
+
   }
 
   _populateSuggestions() {
+    const _perfTimeStart = performance.now();
+
     // TODO: probably want to keep the array around and not allocate new ones
     // every time we populate the suggestions.
-    const newSuggestions = [];
+    const newSuggestions = this.fuzzySearcher.search(this.searchTerm);
 
-    for (const name of emojiNames) {
-      if (fuzzysearch(this.searchTerm, name)){
-        newSuggestions.push(emojiIndex[name]);
-      }
-      if (newSuggestions.length >= SUGGESTION_MAX) {
-        break;
-      }
-    }
+    const _perfTimeEnd = performance.now();
+
+    console.debug(`
+      ${newSuggestions.length} suggestion results found for search
+      term "${this.searchTerm}" in ${_perfTimeEnd- _perfTimeStart}ms
+    `);
 
     this.suggestedEmojis = newSuggestions;
   }

@@ -1,19 +1,27 @@
-06/28/19
 TODO LIST: 
 
 ==================
 Short-Term
 ==================
 
-  - [ ] Start looking into how to make this into a chrome extension (hopefully
-    this will even be allowed to be an extension). Setup chrome extension
-    locally.
+  - [ ] Improve the new fuzzy searching functionality by adding more options. 
+    Add "character miss tolerances" to short-circuit searching.  Reduce the 
+    number of results returned.
+
+  - [ ] Allow the picker to position itself _above_ the textbox if the
+    registered text input is too close to the bottom of the page. 
+
+  - [ ] Write a script to preprocess the emoji.json library and remap it to only
+    give us the information we need (remove category and codes from the
+    objects). The new object should be keyed on name and the value is the actual
+    emoji. The names should also be lower-cased with underscores.
 
 ==================
 Mid-Term
 ==================
-  - [ ] Allow the picker to position itself _above_ the textbox if the
-    registered text input is too close to the bottom of the page. 
+  - [ ] Start looking into how to make this into a chrome extension (hopefully
+    this will even be allowed to be an extension). Setup chrome extension
+    locally.
 
   - [ ] Ensure this works on non-textbox elements that act as textboxes (by
     using the role="textbox" attribute, or some other method). Look at Gmail as
@@ -21,18 +29,8 @@ Mid-Term
     help us out here with divs who are contenteditable (which I am guessing is
     usually paired with role="textbox")
 
-  - [ ] Change the fuzzysearch function to prefer exact substring matches first.
-    We probably have to implement, or use a package, that efficently calculates
-    the "Levenshtein distance", or that tracks the amount of gaps between the
-    letters, which we can use to order the results better.
-
   - [ ] Look different ways to get the exact location of the caret in a `textarea`
     besides using the "textarea-caret" package. This might be the only way.
-
-  - [ ] Write a script to preprocess the emoji.json library and remap it to only
-    give us the information we need (remove category and codes from the
-    objects). The new object should be keyed on name and the value is the actual
-    emoji. The names should also be lower-cased with underscores.
 
   - [ ] Test Emoji character ranges to ensure the emoji library and Noto are
     displaying them all correctly. Write a test script / html page to do this
