@@ -2,7 +2,7 @@ import { WeightedFuzzySearcher } from './fuzzySearch';
 
 import { CHAR_THRESHOLD, SUGGESTION_MAX, PickerEvents } from './constants';
 import { isNavigationKeyPress } from './helpers';
-import { emojis } from './emojis';
+import emojis from '../data/emojis.json';
 import {EventEmitter} from './eventEmitter';
 
 class EmojiPickerStore extends EventEmitter {
@@ -16,8 +16,10 @@ class EmojiPickerStore extends EventEmitter {
     this.suggestedEmojis = [];
     this.currentChoiceIndex = 0;
 
-    this.fuzzySearcher = new WeightedFuzzySearcher(emojis, {itemId: 'name'});
-
+    this.fuzzySearcher = new WeightedFuzzySearcher(emojis, {
+      itemId: 'name',
+      numResults: 5,
+    });
   }
 
   _populateSuggestions() {

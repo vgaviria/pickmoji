@@ -6,7 +6,7 @@ const VisualizerPlugin = require('webpack-visualizer-plugin');
 
 module.exports = {
   entry: {
-    app: Path.resolve(__dirname, '../src/scripts/index.js')
+    app: Path.resolve(__dirname, '../src/picker-test/index.js')
   },
   output: {
     path: Path.join(__dirname, '../build'),
@@ -24,7 +24,7 @@ module.exports = {
       { from: Path.resolve(__dirname, '../public'), to: 'public' }
     ]),
     new HtmlWebpackPlugin({
-      template: Path.resolve(__dirname, '../src/index.html')
+      template: Path.resolve(__dirname, '../src/picker-test/index.html')
     }),
     new VisualizerPlugin()
   ],

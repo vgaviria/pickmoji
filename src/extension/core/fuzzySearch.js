@@ -5,7 +5,8 @@ export class WeightedFuzzySearcher {
 
   constructor(collection, options) {
     this.itemId = options.itemId;
-    this.outputKey = options.outputKey;
+    this.numResults = options.numResults;
+
     this.collection = collection;
   }
 
@@ -78,6 +79,10 @@ export class WeightedFuzzySearcher {
     }
 
     matches.sort((m1, m2) => scoreIndex[m1[this.itemId]] - scoreIndex[m2[this.itemId]]);
+
+    if (this.numResults) {
+      matches = matches.slice(0, this.numResults);
+    }
 
     return matches
   }

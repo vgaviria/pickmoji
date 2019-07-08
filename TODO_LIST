@@ -4,17 +4,8 @@ TODO LIST:
 Short-Term
 ==================
 
-  - [ ] Improve the new fuzzy searching functionality by adding more options. 
-    Add "character miss tolerances" to short-circuit searching.  Reduce the 
-    number of results returned.
-
   - [ ] Allow the picker to position itself _above_ the textbox if the
     registered text input is too close to the bottom of the page. 
-
-  - [ ] Write a script to preprocess the emoji.json library and remap it to only
-    give us the information we need (remove category and codes from the
-    objects). The new object should be keyed on name and the value is the actual
-    emoji. The names should also be lower-cased with underscores.
 
 ==================
 Mid-Term
@@ -54,6 +45,8 @@ Long-Term
   - [ ] Look into aliasing common words to other emojis that make sense in the
     context. :hello => "waving hand"
 
+  - [ ] Look into compressing the emoji data file further 
+
   - [ ] Allow users to set basic opt-in / opt-out settings for specific urls.
     Also allow global opt-in / opt-out settings. 
 
@@ -67,6 +60,9 @@ Long-Term
 
   - [ ] Allow users to load emoji picker on demand rather than automatically 
     appearing (ctrl+space command) (Extension Setting).
+
+  - [ ] Improve the fuzzy search functionality by adding more options. 
+    Add "character miss tolerances" to short-circuit searching.
 
   - [ ] Eventually evaluate if Typescript would be better to use, since there
     might be less ceremony around debugging babel related issues. I don't think

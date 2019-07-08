@@ -1,7 +1,7 @@
 /* This is the index file for the test html page*/
-import './core/index';
-import { emojiPickerStore } from './core/emojiPickerStore';
-import { PickerEvents } from './core/constants';
+import '../extension/core/index';
+import { emojiPickerStore } from '../extension/core/emojiPickerStore';
+import { PickerEvents } from '../extension/core/constants';
 
 class EmojiPickerStoreDebugElement {
   constructor() {
