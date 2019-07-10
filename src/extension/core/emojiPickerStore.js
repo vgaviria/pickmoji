@@ -118,11 +118,14 @@ class EmojiPickerStore extends EventEmitter {
 
       if (this.searchTerm.length > CHAR_THRESHOLD) {
         this._populateSuggestions();
+      } else if(this.listening) {
+        this._disableListening();
       }
 
       this.emit(PickerEvents.pickerStateUpdated, this);
     } else if(this.listening) {
       this._disableListening();
+      this.emit(PickerEvents.pickerStateUpdated, this);
     }
   }
 

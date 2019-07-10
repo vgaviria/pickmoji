@@ -10,7 +10,7 @@ export class WeightedFuzzySearcher {
     this.collection = collection;
   }
 
-  /*
+  /**
    * Get the fuzzy search deviation score for the searchTerm against the target
    * string. The scoring rules are as follows:
    *    - All exact matches will return 0
