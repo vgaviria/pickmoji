@@ -1,7 +1,11 @@
-import { NAVIGATION_KEYS } from './constants';
+import { INPUT_NAVIGATION_KEYS, PICKER_NAVIGATION_KEYS } from './constants';
 
-export function isNavigationKeyPress(key) {
-  return NAVIGATION_KEYS.has(key);
+export function isPickerNavigationKeyPress(key) {
+  return PICKER_NAVIGATION_KEYS.has(key);
+}
+
+export function isInputNavigationKeyPress(key) {
+  return INPUT_NAVIGATION_KEYS.has(key);
 }
 
 export function isTextEditKeyPress(key) {

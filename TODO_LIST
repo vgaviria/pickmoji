@@ -4,6 +4,8 @@ TODO LIST:
 Short-Term
 ==================
 
+  - [ ] Write some unit tests
+
   - [ ] Allow the picker to position itself _above_ the textbox if the
     registered text input is too close to the bottom of the page. 
 
@@ -28,8 +30,6 @@ Mid-Term
 
   - [ ] Profile the crap out of this and make more tasks to try and reduce 
   resource consumption as muich as possible 
-
-  - [ ] Write some unit tests
 
   - [ ] Optimize to allocate less memory. For example:
     * keep references to the suggestion elements, and stop inserting new divs each time.
@@ -67,9 +67,6 @@ Long-Term
   - [ ] Eventually evaluate if Typescript would be better to use, since there
     might be less ceremony around debugging babel related issues. I don't think
     I need to get plugins for all of the es6 features I need when using TS.
-
-  - [ ] Let's try to expand the picker to be more "grid" like, so we can use
-    both horizontal and veritcal space. 
 
   - [ ] Look into other browser extension platforms (firefox?)
 

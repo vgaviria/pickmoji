@@ -1,7 +1,7 @@
 import { WeightedFuzzySearcher } from './fuzzySearch';
 
 import { CHAR_THRESHOLD, SUGGESTION_MAX, PickerEvents } from './constants';
-import { isNavigationKeyPress } from './helpers';
+import { isInputNavigationKeyPress, isPickerNavigationKeyPress } from './helpers';
 import emojis from '../data/emojis.json';
 import {EventEmitter} from './eventEmitter';
 
@@ -90,10 +90,10 @@ class EmojiPickerStore extends EventEmitter {
       this._highlightNextEmoji();
     } else if (navInputKey === 'ArrowUp') {
       this._highlightPreviousEmoji();
-    } else if (navInputKey === 'ArrowLeft') {
-      // TODO: Use this if we want the emoji picker to be more "grid" like
-    } else if (navInputKey === 'ArrowRight') {
-      // TODO: Use this if we want the emoji picker to be more "grid" like
+    } else if (this.listening && navInputKey === 'ArrowLeft') {
+      this._disableListening();
+    } else if (this.listening && navInputKey === 'ArrowRight') {
+      this._disableListening();
     }
   }
 
@@ -107,17 +107,20 @@ class EmojiPickerStore extends EventEmitter {
     this._selectCurrentEmoji();
   }
 
-  handleInputWordChanged(word) {
+  handleInputWordChanged(word, wordCursorLocation) {
     const colonLocation = word.lastIndexOf(':');
     if (word && colonLocation >= 0) {
       if (!this.listening) {
         this._enableListening();
       }
 
-      this.searchTerm = word.substr(colonLocation + 1);
+      this.searchTerm = word.substr(colonLocation + 1, wordCursorLocation - colonLocation - 1);
 
       if (this.searchTerm.length > CHAR_THRESHOLD) {
         this._populateSuggestions();
+        if (this.suggestedEmojis.length === 0) {
+          this._disableListening();
+        }
       } else if(this.listening) {
         this._disableListening();
       }
@@ -134,9 +137,11 @@ class EmojiPickerStore extends EventEmitter {
     if (key === "Escape") {
       this._disableListening();
       this.disableWordCompletion = true;
-    } else if (this.listening && isNavigationKeyPress(key)) {
-      this._handleNavInput(key);
+    } else if (this.listening && isPickerNavigationKeyPress(key)) {
       keyboardEvent.preventDefault();
+      this._handleNavInput(key);
+    } else if (this.listening && isInputNavigationKeyPress(key)) {
+      this._disableListening();
     }
   }
 
