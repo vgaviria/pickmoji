@@ -26,7 +26,6 @@ export class EmojiTextInput {
       if (changeCurrentWord) {
         this._setCurrentWord();
       }
-      console.log(this._getWordCursorLocation());
     });
 
     this._inputElement.addEventListener("click", () => {
@@ -46,7 +45,9 @@ export class EmojiTextInput {
       }
     });
 
-    emojiPickerStore.on(PickerEvents.emojiPicked, this.onEmojiPicked.bind(this));
+    emojiPickerStore.on(
+      PickerEvents.emojiPicked, this.onEmojiPicked.bind(this), this._inputElement.id
+    );
   }
 
   _getInputValue() {

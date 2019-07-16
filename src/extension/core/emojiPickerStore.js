@@ -8,8 +8,10 @@ import {EventEmitter} from './eventEmitter';
 class EmojiPickerStore extends EventEmitter {
   constructor() {
     super();
-    this.locationX = 0;
-    this.locationY = 0;
+    this.inputState = {};
+    this.viewportState = {};
+    this.reverseDisplay = false;
+
     this.listening = false;
     this.disableWordCompletion = false;
     this.searchTerm = '';
@@ -33,7 +35,7 @@ class EmojiPickerStore extends EventEmitter {
 
     console.debug(`
       ${newSuggestions.length} suggestion results found for search
-      term "${this.searchTerm}" in ${_perfTimeEnd- _perfTimeStart}ms
+      term "${this.searchTerm}" in ${_perfTimeEnd - _perfTimeStart}ms
     `);
 
     this.suggestedEmojis = newSuggestions;
@@ -97,9 +99,17 @@ class EmojiPickerStore extends EventEmitter {
     }
   }
 
-  handleLocationChanged(locationX, locationY) {
-    this.locationX = locationX;
-    this.locationY = locationY;
+  handleInputFocused(inputFocusedEvent) {
+    const { input, viewport } = inputFocusedEvent;
+    const reverseDisplayThreshold = viewport.location.y + (viewport.height * .60)
+
+    this.reverseDisplay = input.location.y > reverseDisplayThreshold
+    this.inputState = input;
+    this.viewportState = viewport;
+
+    emojiPickerStore.clearSearch();
+
+    this.emit(PickerEvents.pickerStateUpdated, this);
   }
 
   handleSuggestionPicked(suggestionId) {

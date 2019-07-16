@@ -5,23 +5,48 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>PickMoji Test</title>
   <style>
+    html {
+      height: 100%;
+    }
+    body {
+      height: 100%;
+    }
     .test-textbox {
       font-family: pickmoji-emoji, Arial;
+      margin-right: 10px;
+    }
+    .flex-container {
+      padding: 0;
+      margin: 0;
+      list-style: none;
+      display: -webkit-box;
+      display: -webkit-flex;
+      display: flex;
+      -webkit-flex-flow: row;
+      justify-content: space-around;
+      height: 100%;
     }
   </style>
 </head>
 <body>
-  <div id="test-picker-style"class="pickmoji-picker-active" style="left:200px;">
-    <div class="pickmoji-picker-banner">Select Emoji</div>
-    <div class="pickmoji-picker-suggestions">
-      <div class="pickmoji-suggestion-highlight">😄 :grinning face with smiling eyes</div>
-      <div class="pickmoji-suggestion-active">😄 :grinning face with smiling eyes</div>
+  <div class="flex-container">
+    <div class="test-textbox"> 
+      <!-- <textarea style="font-family:inherit">Hello there! 😀</textarea> -->
+      <input type="textbox" style="font-family:inherit;font-size:20px" value="Hello there! 😀"></input>
     </div>
-  </div>
-  <div class="test-textbox"> 
-    <!-- <textarea style="font-family:inherit">Hello there! 😀</textarea> -->
-    <input type="textbox" style="font-family:inherit" value="Hello there! 😀"></input>
-    <div id="picker-state"></div>
+    <div class="test-textbox" style="position:relative;top:90%"> 
+      <input type="textbox" style="font-family:inherit;font-size:20px" value="Hello there! 😀"></input>
+    </div>
+    <div id="test-picker-style"class="pickmoji-picker-active" style="position:relative;font-size:20px;height:fit-content;">
+      <div class="pickmoji-picker-banner">Select Emoji</div>
+      <div class="pickmoji-picker-suggestions">
+        <div class="pickmoji-suggestion-highlight">😄 :grinning face with smiling eyes</div>
+        <div class="pickmoji-suggestion-active">😄 :grinning face with smiling eyes</div>
+        <div class="pickmoji-suggestion-active">😄 :grinning face with smiling eyes</div>
+        <div class="pickmoji-suggestion-active">😄 :grinning face with smiling eyes</div>
+        <div class="pickmoji-suggestion-active">😄 :grinning face with smiling eyes</div>
+      </div>
+    </div>
   </div>
 </body>
 </html>

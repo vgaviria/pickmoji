@@ -4,10 +4,10 @@ TODO LIST:
 Short-Term
 ==================
 
-  - [ ] Write some unit tests
+  - [ ] Fix bug where multiple input elements are overwriting each other's
+    content.
 
-  - [ ] Allow the picker to position itself _above_ the textbox if the
-    registered text input is too close to the bottom of the page. 
+  - [ ] Write some unit tests
 
 ==================
 Mid-Term

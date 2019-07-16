@@ -73,15 +73,30 @@ class EmojiPicker {
       }
     }
 
-    this._show(pickerState.locationX, pickerState.locationY);
+    this._show();
+    this._setPosition(pickerState);
+  }
+
+  _setPosition(pickerState) {
+    const { inputState } = pickerState;
+    let locationX, locationY;
+
+    if (pickerState.reverseDisplay) {
+      locationX = Math.round(inputState.location.x);
+      locationY = Math.round(inputState.location.y - this.pickerElement.offsetHeight - 5);
+    } else {
+      locationX = Math.round(inputState.location.x);
+      locationY = Math.round(inputState.location.y + inputState.height + 5);
+    }
+
+    this.pickerElement.style = `left:${locationX}px;top:${locationY}px`;
   }
 
   _hide() {
     this.pickerElement.className = 'pickmoji-picker-hidden';
   }
 
-  _show(locationX, locationY) {
-    this.pickerElement.style = `left:${locationX}px;top:${locationY}px`;
+  _show() {
     this.pickerElement.className = 'pickmoji-picker-active';
   }
 

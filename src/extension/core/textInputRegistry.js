@@ -1,4 +1,3 @@
-import { emojiPickerStore } from './emojiPickerStore';
 import { EmojiTextInput } from './emojiTextInput';
 
 export class EmojiTextInputRegistry {
@@ -28,11 +27,7 @@ export class EmojiTextInputRegistry {
       console.debug(`Registering element with id ${inputElement.id}`);
     }
 
-    emojiPickerStore.clearSearch();
-    emojiPickerStore.handleLocationChanged(
-      inputElement.offsetLeft,
-      inputElement.offsetTop + inputElement.offsetHeight + 5,
-    );
+    return this._registry[inputElement.id];
   }
 }
 
