@@ -9,12 +9,9 @@ class EmojiPickerStore extends EventEmitter {
   constructor() {
     super();
     this.inputState = {};
-    this.viewportState = {};
     this.reverseDisplay = false;
 
     this.listening = false;
-    this.disableWordCompletion = false;
-    this.searchTerm = '';
     this.suggestedEmojis = [];
     this.currentChoiceIndex = 0;
 
@@ -24,18 +21,23 @@ class EmojiPickerStore extends EventEmitter {
     });
   }
 
-  _populateSuggestions() {
+  _populateSuggestions(searchTerm) {
+    let newSuggestions;
     const _perfTimeStart = performance.now();
 
     // TODO: probably want to keep the array around and not allocate new ones
     // every time we populate the suggestions.
-    const newSuggestions = this.fuzzySearcher.search(this.searchTerm);
+    if (searchTerm.length > CHAR_THRESHOLD) {
+      newSuggestions = this.fuzzySearcher.search(searchTerm);
+    } else {
+      newSuggestions = []
+    }
 
     const _perfTimeEnd = performance.now();
 
     console.debug(`
       ${newSuggestions.length} suggestion results found for search
-      term "${this.searchTerm}" in ${_perfTimeEnd - _perfTimeStart}ms
+      term "${searchTerm}" in ${_perfTimeEnd - _perfTimeStart}ms
     `);
 
     this.suggestedEmojis = newSuggestions;
@@ -43,44 +45,40 @@ class EmojiPickerStore extends EventEmitter {
 
   _resetSearchState() {
     this.listening = false;
-    this.disableWordCompletion = false;
-    this.searchTerm = '';
     this.suggestedEmojis = [];
     this.currentChoiceIndex = 0;
   }
 
   _enableListening() {
-    this._resetSearchState();
-    this.listening = true;
-    this.emit(PickerEvents.pickerStateUpdated, this);
+    if (!this.listening) {
+      this._resetSearchState();
+      this.listening = true;
+      this.emit(PickerEvents.pickerStateUpdated, this);
+    }
   }
 
   _disableListening() {
-    this._resetSearchState();
-    this.listening = false;
-    this.emit(PickerEvents.pickerStateUpdated, this);
+    if (this.listening) {
+      this._resetSearchState();
+      this.listening = false;
+      this.emit(PickerEvents.pickerStateUpdated, this);
+    }
   }
 
   _highlightNextEmoji() {
-    if (this.listening) {
-      this.currentChoiceIndex = (this.currentChoiceIndex + 1) % SUGGESTION_MAX;
-      this.emit(PickerEvents.pickerStateUpdated, this);
-    }
+    this.currentChoiceIndex = (this.currentChoiceIndex + 1) % SUGGESTION_MAX;
+    this.emit(PickerEvents.pickerStateUpdated, this);
   }
 
   _highlightPreviousEmoji() {
-    if (this.listening) {
-      this.currentChoiceIndex = (this.currentChoiceIndex + SUGGESTION_MAX - 1) % SUGGESTION_MAX;
-      this.emit(PickerEvents.pickerStateUpdated, this);
-    }
+    this.currentChoiceIndex = (this.currentChoiceIndex + SUGGESTION_MAX - 1) % SUGGESTION_MAX;
+    this.emit(PickerEvents.pickerStateUpdated, this);
   }
 
   _selectCurrentEmoji() {
     const emoji = this.suggestedEmojis[this.currentChoiceIndex];
-    if (this.listening && emoji) {
-      this._disableListening();
-      this.emit(PickerEvents.emojiPicked, emoji);
-    }
+    this._disableListening();
+    this.emit(PickerEvents.emojiPicked, emoji);
   }
 
   _handleNavInput(navInputKey) {
@@ -92,9 +90,9 @@ class EmojiPickerStore extends EventEmitter {
       this._highlightNextEmoji();
     } else if (navInputKey === 'ArrowUp') {
       this._highlightPreviousEmoji();
-    } else if (this.listening && navInputKey === 'ArrowLeft') {
+    } else if (navInputKey === 'ArrowLeft') {
       this._disableListening();
-    } else if (this.listening && navInputKey === 'ArrowRight') {
+    } else if (navInputKey === 'ArrowRight') {
       this._disableListening();
     }
   }
@@ -105,11 +103,8 @@ class EmojiPickerStore extends EventEmitter {
 
     this.reverseDisplay = input.location.y > reverseDisplayThreshold
     this.inputState = input;
-    this.viewportState = viewport;
 
-    emojiPickerStore.clearSearch();
-
-    this.emit(PickerEvents.pickerStateUpdated, this);
+    this.clearSearch();
   }
 
   handleSuggestionPicked(suggestionId) {
@@ -119,45 +114,36 @@ class EmojiPickerStore extends EventEmitter {
 
   handleInputWordChanged(word, wordCursorLocation) {
     const colonLocation = word.lastIndexOf(':');
+
     if (word && colonLocation >= 0) {
-      if (!this.listening) {
-        this._enableListening();
-      }
-
-      this.searchTerm = word.substr(colonLocation + 1, wordCursorLocation - colonLocation - 1);
-
-      if (this.searchTerm.length > CHAR_THRESHOLD) {
-        this._populateSuggestions();
-        if (this.suggestedEmojis.length === 0) {
-          this._disableListening();
-        }
-      } else if(this.listening) {
-        this._disableListening();
-      }
-
-      this.emit(PickerEvents.pickerStateUpdated, this);
-    } else if(this.listening) {
-      this._disableListening();
-      this.emit(PickerEvents.pickerStateUpdated, this);
+      const searchTerm = word.substr(colonLocation + 1, wordCursorLocation - colonLocation - 1);
+      this._enableListening();
+      this._populateSuggestions(searchTerm);
     }
+
+    if (this.suggestedEmojis.length <= 0) {
+      this._disableListening();
+    }
+
+    this.emit(PickerEvents.pickerStateUpdated, this);
   }
 
   handleEvent(keyboardEvent) {
     const key = keyboardEvent.key;
-    if (key === "Escape") {
+    if (!this.listening) {
+      return;
+    } else if (key === "Escape") {
       this._disableListening();
-      this.disableWordCompletion = true;
-    } else if (this.listening && isPickerNavigationKeyPress(key)) {
+    } else if (isPickerNavigationKeyPress(key)) {
       keyboardEvent.preventDefault();
       this._handleNavInput(key);
-    } else if (this.listening && isInputNavigationKeyPress(key)) {
+    } else if (isInputNavigationKeyPress(key)) {
       this._disableListening();
     }
   }
 
   clearSearch() {
-    this._resetSearchState();
-    this.emit(PickerEvents.pickerStateUpdated, this);
+    this._disableListening();
   }
 
 }

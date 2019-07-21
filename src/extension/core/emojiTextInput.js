@@ -16,12 +16,11 @@ export class EmojiTextInput {
     });
 
     this._inputElement.addEventListener("keyup", (keyboardEvent) => {
-      const cursorLocation = this._getCursorLocation();
       const changeCurrentWord = (
         !this.currentWord ||
         isTextEditKeyPress(keyboardEvent.key) ||
         isInputNavigationKeyPress(keyboardEvent.key) &&
-        (cursorLocation < this.currentWordStart || cursorLocation > this.currentWordEnd)
+        !this._isCusorWithinWordBounds()
       );
       if (changeCurrentWord) {
         this._setCurrentWord();
@@ -29,20 +28,14 @@ export class EmojiTextInput {
     });
 
     this._inputElement.addEventListener("click", () => {
-      const cursorLocation = this._getCursorLocation();
-      const changeCurrentWord = (
-        !this.currentWord ||
-        (cursorLocation >= this.currentWordStart || cursorLocation <= this.currentWordEnd)
-      );
+      const changeCurrentWord = !this.currentWord || !this._isCusorWithinWordBounds();
       if (changeCurrentWord) {
         this._setCurrentWord();
       }
     });
 
     this._inputElement.addEventListener("blur", () => {
-      if (emojiPickerStore.listening) {
-        emojiPickerStore.clearSearch();
-      }
+      emojiPickerStore.clearSearch();
     });
 
     emojiPickerStore.on(
@@ -64,6 +57,11 @@ export class EmojiTextInput {
 
   _getWordCursorLocation() {
     return this._inputElement.selectionEnd - this.currentWordStart;
+  }
+
+  _isCusorWithinWordBounds() {
+    const cursorLocation = this._getCursorLocation();
+    return cursorLocation >= this.currentWordStart && cursorLocation <= this.currentWordEnd
   }
 
   _setCursorLocation(cursorLocation) {
@@ -99,6 +97,30 @@ export class EmojiTextInput {
       oldText.substr(0, searchTextStartIndex) + emojiChar + oldText.substr(searchTextEndIndex, oldText.length)
     );
     this._setCursorLocation(searchTextStartIndex + 1);
+  }
+
+  focus() {
+    const inputBoundingRect = this._inputElement.getBoundingClientRect();
+    const inputFocusedEvent = {
+      input: {
+        location: {
+          x: inputBoundingRect.x + window.scrollX,
+          y: inputBoundingRect.y + window.scrollY,
+        },
+        width: inputBoundingRect.width,
+        height: inputBoundingRect.height,
+      },
+      viewport: {
+        location: {
+          x: window.scrollX,
+          y: window.scrollY,
+        },
+        width: window.innerWidth,
+        height: window.innerHeight,
+      }
+    };
+
+    emojiPickerStore.handleInputFocused(inputFocusedEvent);
   }
 
   onEmojiPicked(emoji) {
