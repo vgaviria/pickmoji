@@ -103,6 +103,7 @@ export class EmojiTextInput {
     const inputBoundingRect = this._inputElement.getBoundingClientRect();
     const inputFocusedEvent = {
       input: {
+        id: this._inputElement.id,
         location: {
           x: inputBoundingRect.x + window.scrollX,
           y: inputBoundingRect.y + window.scrollY,

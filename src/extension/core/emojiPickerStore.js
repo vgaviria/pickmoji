@@ -9,6 +9,7 @@ class EmojiPickerStore extends EventEmitter {
   constructor() {
     super();
     this.inputState = {};
+    this.handlerChannelId = null;
     this.reverseDisplay = false;
 
     this.listening = false;
@@ -78,7 +79,7 @@ class EmojiPickerStore extends EventEmitter {
   _selectCurrentEmoji() {
     const emoji = this.suggestedEmojis[this.currentChoiceIndex];
     this._disableListening();
-    this.emit(PickerEvents.emojiPicked, emoji);
+    this.emit(PickerEvents.emojiPicked, emoji, this.handlerChannelId);
   }
 
   _handleNavInput(navInputKey) {
@@ -103,6 +104,7 @@ class EmojiPickerStore extends EventEmitter {
 
     this.reverseDisplay = input.location.y > reverseDisplayThreshold
     this.inputState = input;
+    this.handlerChannelId = input.id;
 
     this.clearSearch();
   }

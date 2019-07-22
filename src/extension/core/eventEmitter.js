@@ -9,7 +9,7 @@ export class EventEmitter {
     if (this.eventHandlers[eventName]) {
       this.eventHandlers[eventName][handlerId] = callback;
     } else {
-      this.eventHandlers[eventName] = { handlerId: callback};
+      this.eventHandlers[eventName] = { [handlerId]: callback};
     }
   }
 
@@ -20,12 +20,15 @@ export class EventEmitter {
     }
   }
 
-  emit(eventName, state) {
+  emit(eventName, data, targetHandlerId) {
     const handlers = this.eventHandlers[eventName];
     if (handlers) {
       for (let handlerId in handlers) {
+        if (targetHandlerId && targetHandlerId !== handlerId) {
+          continue;
+        }
         const callback = this.eventHandlers[eventName][handlerId];
-        setTimeout(() => callback(state));
+        setTimeout(() => callback(data));
       }
     }
   }
