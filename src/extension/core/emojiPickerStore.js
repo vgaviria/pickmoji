@@ -1,6 +1,6 @@
 import { WeightedFuzzySearcher } from './fuzzySearch';
 
-import { CHAR_THRESHOLD, SUGGESTION_MAX, PickerEvents } from './constants';
+import { CHAR_THRESHOLD, PickerEvents } from './constants';
 import { isInputNavigationKeyPress, isPickerNavigationKeyPress } from './helpers';
 import emojis from '../data/emojis.json';
 import {EventEmitter} from './eventEmitter';
@@ -30,7 +30,7 @@ class EmojiPickerStore extends EventEmitter {
     if (searchTerm.length > CHAR_THRESHOLD) {
       newSuggestions = this.fuzzySearcher.search(searchTerm);
     } else {
-      newSuggestions = []
+      newSuggestions = [];
     }
 
     const _perfTimeEnd = performance.now();
@@ -44,7 +44,6 @@ class EmojiPickerStore extends EventEmitter {
   }
 
   _resetSearchState() {
-    this.listening = false;
     this.suggestedEmojis = [];
     this.currentChoiceIndex = 0;
   }
@@ -66,12 +65,14 @@ class EmojiPickerStore extends EventEmitter {
   }
 
   _highlightNextEmoji() {
-    this.currentChoiceIndex = (this.currentChoiceIndex + 1) % SUGGESTION_MAX;
+    const suggestionsLength = this.suggestedEmojis.length;
+    this.currentChoiceIndex = (this.currentChoiceIndex + 1) % suggestionsLength;
     this.emit(PickerEvents.pickerStateUpdated, this);
   }
 
   _highlightPreviousEmoji() {
-    this.currentChoiceIndex = (this.currentChoiceIndex + SUGGESTION_MAX - 1) % SUGGESTION_MAX;
+    const suggestionsLength = this.suggestedEmojis.length;
+    this.currentChoiceIndex = (this.currentChoiceIndex + suggestionsLength - 1) % suggestionsLength;
     this.emit(PickerEvents.pickerStateUpdated, this);
   }
 
@@ -109,7 +110,9 @@ class EmojiPickerStore extends EventEmitter {
 
   handleSuggestionPicked(suggestionId) {
     this.currentChoiceIndex = suggestionId;
-    this._selectCurrentEmoji();
+    if (this.listening) {
+      this._selectCurrentEmoji();
+    }
   }
 
   handleInputWordChanged(word, wordCursorLocation) {
