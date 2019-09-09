@@ -9,7 +9,7 @@ export class EventEmitter {
     if (this.eventHandlers[eventName]) {
       this.eventHandlers[eventName][handlerId] = callback;
     } else {
-      this.eventHandlers[eventName] = { handlerId: callback};
+      this.eventHandlers[eventName] = { [handlerId]: callback};
     }
   }
 
