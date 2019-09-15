@@ -11,7 +11,16 @@ export const INPUT_NAVIGATION_KEYS = new Set([
   'ArrowLeft',
   'ArrowRight',
 ]);
+
 export const PickerEvents = {
   pickerStateUpdated: 'pickerStateUpdated',
+  suggestionClicked: 'suggestionClicked',
   emojiPicked: 'emojiPicked',
+};
+
+export const InputEvents = {
+  keyDown: 'keyDown',
+  searchTermChanged: 'searchTermChanged',
+  inputFocused: 'inputFocused',
+  inputBlur: 'inputBlur',
 };

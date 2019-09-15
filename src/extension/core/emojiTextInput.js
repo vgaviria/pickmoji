@@ -1,7 +1,6 @@
-import { emojiPickerStore } from './emojiPickerStore';
-
-import { PickerEvents } from './constants';
-import { isInputNavigationKeyPress, isTextEditKeyPress } from './helpers';
+import { CHAR_THRESHOLD, InputEvents } from './constants';
+import { eventDispatcher } from './eventDispatcher';
+import { isInputNavigationKeyPress, isPickerNavigationKeyPress, isTextEditKeyPress } from './helpers';
 
 // TODO: This is assuming that the input element is an <input type='textbox'>
 export class TextInputElement {
@@ -29,7 +28,7 @@ export class TextInputElement {
   }
 
   getId() {
-    this._inputElement.id;
+    return this._inputElement.id;
   }
 
   getBoundingRect() {
@@ -130,30 +129,62 @@ export class TextInputElement {
 export class EmojiTextInput {
   constructor(inputElement) {
     this.textInput = new TextInputElement(inputElement);
+    this._currentSearchTerm = null;
 
-    this.textInput.onKeyDown((keyboardEvent) => emojiPickerStore.handleEvent(keyboardEvent));
-    this.textInput.onBlur(() => emojiPickerStore.clearSearch());
-    this.textInput.onWordChanged((currentWord, currentIndex) => {
-      emojiPickerStore.handleInputWordChanged(currentWord, currentIndex);
+    this.textInput.onKeyDown((keyboardEvent) => {
+      const shouldPreventKeyboardPropogation = (
+        this._currentSearchTerm && isPickerNavigationKeyPress(keyboardEvent.key)
+      );
+
+      if (shouldPreventKeyboardPropogation) {
+        keyboardEvent.preventDefault();
+      }
+
+      eventDispatcher.dispatch(InputEvents.keyDown, { key: keyboardEvent.key })
     });
 
-    emojiPickerStore.on(
-      PickerEvents.emojiPicked, this.onEmojiPicked.bind(this), this.textInput.getId()
-    );
+    this.textInput.onBlur(() => (
+      eventDispatcher.dispatch(InputEvents.inputBlur)
+    ));
 
+    this.textInput.onWordChanged((word, wordCursorLocation) => {
+      const searchTerm = this.getSearchTerm(word, wordCursorLocation);
+
+      if (this._currentSearchTerm !== searchTerm) {
+        eventDispatcher.dispatch(InputEvents.searchTermChanged, { searchTerm });
+      }
+
+      this._currentSearchTerm = searchTerm;
+    });
   }
 
-  _replaceTextWithEmoji(emojiChar) {
+  getSearchTerm(word, wordCursorLocation) {
+    const colonLocation = word.lastIndexOf(':');
+    const searchTermLength = wordCursorLocation - colonLocation + 1;
+
+    if (word && colonLocation >= 0 && searchTermLength > CHAR_THRESHOLD) {
+      return word.substr(colonLocation + 1, wordCursorLocation - colonLocation - 1);
+    } else {
+      return null;
+    }
+  }
+
+  replaceSearchTermWithEmoji(emojiChar) {
     const oldText = this.textInput.getInputValue();
     const searchTextEndIndex = this.textInput.getCursorLocation();
     const searchTextStartIndex = oldText.lastIndexOf(':', searchTextEndIndex);
     const searchText = oldText.substring(searchTextStartIndex, searchTextEndIndex);
-    this.textInput.replaceText(searchText, emojiChar, searchTextStartIndex);
+    if (searchText === ':' + this._currentSearchTerm) {
+      this.textInput.replaceText(searchText, emojiChar, searchTextStartIndex);
+    }
   }
 
   focus() {
     const inputFocusedEvent = {
-      input: this.textInput.getBoundingRect(),
+      input: {
+        id: this.textInput.getId(),
+        ...this.textInput.getBoundingRect()
+      },
       viewport: {
         location: {
           x: window.scrollX,
@@ -164,11 +195,14 @@ export class EmojiTextInput {
       }
     };
 
-    emojiPickerStore.handleInputFocused(inputFocusedEvent);
+    eventDispatcher.dispatch(InputEvents.inputFocused, inputFocusedEvent);
   }
 
-  onEmojiPicked(emoji) {
-    this._replaceTextWithEmoji(emoji.char);
+  _isSearchTermValid(searchTerm) {
+    if (searchTerm) {
+      return searchTerm.length > CHAR_THRESHOLD
+    }
+    return false
   }
 }
 

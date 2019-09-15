@@ -1,6 +1,7 @@
 import { emojiPickerStore } from './emojiPickerStore';
 
 import { SUGGESTION_MAX, PickerEvents } from './constants';
+import { eventDispatcher } from './eventDispatcher';
 
 const initialPickerHTML = `
   <div class="pickmoji-picker-banner">Select Emoji</div>
@@ -25,7 +26,8 @@ class EmojiPicker {
     suggestionElement.className = 'pickmoji-suggestion-active';
     suggestionElement.addEventListener('mousedown', (mouseEvent) => {
       console.debug(`clicking suggestion ${suggestionElement.id}`);
-      emojiPickerStore.handleSuggestionPicked(indexId);
+      // emojiPickerStore.handleSuggestionPicked(indexId);
+      eventDispatcher.dispatch(PickerEvents.suggestionClicked, {suggestionId: indexId});
       mouseEvent.preventDefault();
     });
 

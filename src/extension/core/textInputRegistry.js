@@ -5,15 +5,15 @@ export class EmojiTextInputRegistry {
     this._registry = {}
   }
 
+  _createRandomId() {
+    return `pickmoji-text-input-${Math.round(Math.random() * 1000000000)}`;
+  }
+
   canRegisterElement(htmlNode) {
     if (htmlNode.tagName.toLowerCase() === 'input' && htmlNode.attributes.getNamedItem('type').value === 'textbox') {
       return true;
     }
     return false;
-  }
-
-  _createRandomId() {
-    return `pickmoji-text-input-${Math.round(Math.random() * 1000000000)}`;
   }
 
   registerElement(inputElement) {
@@ -28,6 +28,10 @@ export class EmojiTextInputRegistry {
     }
 
     return this._registry[inputElement.id];
+  }
+
+  get(id) {
+    return this._registry[id];
   }
 }
 

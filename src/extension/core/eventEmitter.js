@@ -5,28 +5,19 @@ export class EventEmitter {
     this.eventHandlers = {};
   }
 
-  on(eventName, callback, handlerId) {
+  on(eventName, callback) {
     if (this.eventHandlers[eventName]) {
-      this.eventHandlers[eventName][handlerId] = callback;
+      this.eventHandlers[eventName].push(callback);
     } else {
-      this.eventHandlers[eventName] = { [handlerId]: callback};
+      this.eventHandlers[eventName] = [callback];
     }
   }
 
-  unsubscribe(eventName, handlerId) {
+  emit(eventName, ...args) {
     const handlers = this.eventHandlers[eventName];
-    if (handlers) {
-      delete handlers[handlerId];
-    }
-  }
-
-  emit(eventName, state) {
-    const handlers = this.eventHandlers[eventName];
-    if (handlers) {
-      for (let handlerId in handlers) {
-        const callback = this.eventHandlers[eventName][handlerId];
-        setTimeout(() => callback(state));
-      }
+    for (let handlerIndex in handlers) {
+      const callback = this.eventHandlers[eventName][handlerIndex];
+      setTimeout(() => callback.apply(null, args));
     }
   }
 }
